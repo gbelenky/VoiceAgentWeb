@@ -1,0 +1,271 @@
+@page "/"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using VoiceAgentWeb.Client.Services
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+@inject IAccessTokenProvider TokenProvider
+
+<div class="interview-container">
+    <header class="interview-header">
+        <h1>HR Interview Agent</h1>
+        <p class="subtitle">AI-Powered Voice Interview powered by Azure Voice Live</p>
+        <AuthorizeView>
+            <Authorized>
+                <p class="user-info">Signed in as <strong>@context.User.Identity?.Name</strong>
+                    <a href="authentication/logout" class="sign-out-link">Sign out</a>
+                </p>
+            </Authorized>
+        </AuthorizeView>
+    </header>
+
+    @if (!_sessionActive)
+    {
+        <div class="start-screen">
+            <div class="start-icon">🎙️</div>
+            <h2>Ready to begin your interview?</h2>
+            <p>Click the button below to start a voice-based HR interview session. Make sure your microphone is enabled.</p>
+            <button class="btn-start" @onclick="StartSession" disabled="@_connecting">
+                @if (_connecting)
+                {
+                    <span>Connecting...</span>
+                }
+                else
+                {
+                    <span>Start Interview</span>
+                }
+            </button>
+            @if (_transcripts.Any(t => t.IsFinal))
+            {
+                <button class="btn-download" @onclick="DownloadTranscript">📄 Download Transcript</button>
+            }
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="error-message">@_error</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="session-active">
+            <div class="status-indicator @GetStatusClass()">
+                <div class="orb @GetOrbAnimation()"></div>
+                <span class="status-text">@GetStatusText()</span>
+            </div>
+
+            <div class="transcript-panel" @ref="_transcriptPanel">
+                @foreach (var msg in _transcripts)
+                {
+                    <div class="transcript-message @(msg.Role == "user" ? "user-message" : "assistant-message")">
+                        <span class="role-label">@(msg.Role == "user" ? "You" : "Interviewer")</span>
+                        <p>@msg.Text</p>
+                    </div>
+                }
+            </div>
+
+            <div class="controls">
+                <button class="btn-stop" @onclick="StopSession">
+                    End Interview
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="error-message">@_error</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private VoiceSessionService? _voiceService;
+    private bool _sessionActive;
+    private bool _connecting;
+    private string _status = "idle";
+    private string _error = "";
+    private List<TranscriptMessage> _transcripts = new();
+    private ElementReference _transcriptPanel;
+
+    protected override void OnInitialized()
+    {
+        _voiceService = new VoiceSessionService(JSRuntime);
+        _voiceService.OnStatusChanged += HandleStatusChanged;
+        _voiceService.OnTranscriptReceived += HandleTranscript;
+        _voiceService.OnError += HandleError;
+        _voiceService.OnSessionStarted += HandleSessionStarted;
+        _voiceService.OnSessionStopped += HandleSessionStopped;
+    }
+
+    private async Task StartSession()
+    {
+        _error = "";
+        _connecting = true;
+        _transcripts.Clear();
+        StateHasChanged();
+
+        try
+        {
+            // Get access token for WebSocket authentication
+            var tokenResult = await TokenProvider.RequestAccessToken();
+            if (!tokenResult.TryGetToken(out var token))
+            {
+                _error = "Unable to acquire access token. Please sign in again.";
+                _connecting = false;
+                StateHasChanged();
+                return;
+            }
+
+            // Connect to WebSocket on the same origin with access token
+            var baseUri = new Uri(NavigationManager.BaseUri);
+            var wsScheme = baseUri.Scheme == "https" ? "wss" : "ws";
+            var serverUrl = $"{wsScheme}://{baseUri.Host}:{baseUri.Port}";
+
+            await _voiceService!.StartSessionAsync(serverUrl, token.Value);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to connect: {ex.Message}";
+            _connecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StopSession()
+    {
+        if (_voiceService != null)
+        {
+            await _voiceService.StopSessionAsync();
+        }
+        _sessionActive = false;
+        StateHasChanged();
+    }
+
+    private void HandleStatusChanged(string status)
+    {
+        _status = status;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleTranscript(TranscriptMessage msg)
+    {
+        if (msg.IsFinal)
+        {
+            // Replace any pending non-final message for same role
+            var existing = _transcripts.FindIndex(t => t.Role == msg.Role && !t.IsFinal);
+            if (existing >= 0)
+                _transcripts[existing] = msg;
+            else
+                _transcripts.Add(msg);
+        }
+        else
+        {
+            // Update or add interim transcript
+            var existing = _transcripts.FindIndex(t => t.Role == msg.Role && !t.IsFinal);
+            if (existing >= 0)
+                _transcripts[existing] = msg;
+            else
+                _transcripts.Add(msg);
+        }
+        InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            await ScrollTranscriptToBottom();
+        });
+    }
+
+    private async Task ScrollTranscriptToBottom()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("scrollToBottom", _transcriptPanel);
+        }
+        catch { }
+    }
+
+    private void HandleError(string error)
+    {
+        _error = error;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleSessionStarted()
+    {
+        _sessionActive = true;
+        _connecting = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleSessionStopped()
+    {
+        _sessionActive = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetStatusClass() => _status switch
+    {
+        "listening" => "status-listening",
+        "thinking" => "status-thinking",
+        "speaking" => "status-speaking",
+        _ => "status-idle"
+    };
+
+    private string GetOrbAnimation() => _status switch
+    {
+        "listening" => "orb-pulse",
+        "thinking" => "orb-spin",
+        "speaking" => "orb-wave",
+        _ => ""
+    };
+
+    private string GetStatusText() => _status switch
+    {
+        "listening" => "Listening...",
+        "thinking" => "Thinking...",
+        "speaking" => "Speaking...",
+        "connecting" => "Connecting...",
+        _ => "Ready"
+    };
+
+    private async Task DownloadTranscript()
+    {
+        var finalTranscripts = _transcripts.Where(t => t.IsFinal).ToList();
+        if (!finalTranscripts.Any()) return;
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("HR Interview Transcript");
+        sb.AppendLine($"Date: {DateTime.Now:yyyy-MM-dd HH:mm}");
+        sb.AppendLine(new string('-', 50));
+        sb.AppendLine();
+
+        foreach (var msg in finalTranscripts)
+        {
+            var speaker = msg.Role == "user" ? "Candidate" : "Interviewer";
+            sb.AppendLine($"[{speaker}]");
+            sb.AppendLine(msg.Text);
+            sb.AppendLine();
+        }
+
+        var content = sb.ToString();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+        var base64 = Convert.ToBase64String(bytes);
+        var fileName = $"interview-transcript-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+        _transcripts.Clear();
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_voiceService != null)
+        {
+            _voiceService.OnStatusChanged -= HandleStatusChanged;
+            _voiceService.OnTranscriptReceived -= HandleTranscript;
+            _voiceService.OnError -= HandleError;
+            _voiceService.OnSessionStarted -= HandleSessionStarted;
+            _voiceService.OnSessionStopped -= HandleSessionStopped;
+            await _voiceService.DisposeAsync();
+        }
+    }
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+}

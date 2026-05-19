@@ -1,0 +1,319 @@
+html, body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #1a1a2e;
+    color: #e0e0e0;
+}
+
+.main-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.interview-container {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+}
+
+.interview-header h1 {
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.interview-header .subtitle {
+    color: #8892b0;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.interview-header .user-info {
+    color: #8892b0;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.interview-header .user-info strong {
+    color: #ccd6f6;
+}
+
+.sign-out-link {
+    color: #667eea;
+    text-decoration: none;
+    margin-left: 0.75rem;
+    font-size: 0.8rem;
+}
+
+.sign-out-link:hover {
+    text-decoration: underline;
+}
+
+/* Start Screen */
+.start-screen {
+    background: #16213e;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.start-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.start-screen h2 {
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.start-screen p {
+    color: #8892b0;
+    margin-bottom: 2rem;
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-start:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-start:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Session Active */
+.session-active {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.orb {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
+}
+
+.orb-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.orb-spin {
+    animation: spin 1s linear infinite;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.orb-wave {
+    animation: wave 0.6s ease-in-out infinite alternate;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes wave {
+    from { transform: scale(1); }
+    to { transform: scale(1.2); }
+}
+
+.status-text {
+    font-size: 1.1rem;
+    color: #ccd6f6;
+    font-weight: 500;
+}
+
+/* Transcript Panel */
+.transcript-panel {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    text-align: left;
+    min-height: 200px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.transcript-message {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+}
+
+.user-message {
+    background: #1e3a5f;
+    margin-left: 2rem;
+}
+
+.assistant-message {
+    background: #2d1b69;
+    margin-right: 2rem;
+}
+
+.role-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8892b0;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.transcript-message p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+.btn-stop {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-stop:hover {
+    background: #c0392b;
+}
+
+.btn-download {
+    background: #2980b9;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1rem;
+}
+
+.btn-download:hover {
+    background: #1a6fa3;
+}
+
+/* Error */
+.error-message {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Scrollbar */
+.transcript-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.transcript-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.transcript-panel::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 3px;
+}
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    color: #333;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    inset: 20vh 0 auto 0;
+    margin: 0 auto 0 auto;
+}
+
+    .loading-progress circle {
+        fill: none;
+        stroke: #333;
+        stroke-width: 0.6rem;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+    }
+
+        .loading-progress circle:last-child {
+            stroke: #667eea;
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    color: #ccd6f6;
+}
+
+    .loading-progress-text:after {
+        content: var(--blazor-load-percentage-text, "Loading");
+    }
