@@ -6,12 +6,12 @@ An AI-powered HR interview agent using **Azure Voice Live** service with a **Bla
 
 ```
 ┌─────────────────────────┐   WebSocket    ┌──────────────────────┐   Voice Live SDK   ┌──────────────┐
-│  Blazor WASM Client     │◄──────────────►│  ASP.NET Core Server │◄─────────────────►│  Azure Voice  │
-│  (C# + JS Interop)      │  JSON + PCM16  │  (VoiceLiveHandler)  │   PCM16 + events  │  Live Service │
-│                          │               │                      │                    │              │
-│  Audio: JS AudioWorklet  │               │  WebSocket middleware │                    │              │
-│  UI: Razor components    │               │  Session management   │                    │              │
-└─────────────────────────┘               └──────────────────────┘                    └──────────────┘
+│  Blazor WASM Client     │◄──────────────►│  ASP.NET Core Server │◄─────────────────► │  Azure Voice │
+│  (C# + JS Interop)      │  JSON + PCM16  │  (VoiceLiveHandler)  │   PCM16 + events   │  Live Service│
+│                         │                │                      │                    │              │
+│  Audio: JS AudioWorklet │                │  WebSocket middleware│                    │              │
+│  UI: Razor components   │                │  Session management  │                    │              │
+└─────────────────────────┘                └──────────────────────┘                    └──────────────┘
 ```
 
 ## Prerequisites
