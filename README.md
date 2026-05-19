@@ -24,11 +24,21 @@ An AI-powered HR interview agent using **Azure Voice Live** service with a **Bla
 
 ### 1. Configure the server
 
-```bash
-cd Server
-cp .env.sample .env
-# Edit .env with your Azure Voice Live endpoint
+Create `Server/appsettings.Development.json` with your Azure Voice Live credentials:
+
+```json
+{
+  "VoiceLive": {
+    "Endpoint": "https://<your-resource>.services.ai.azure.com",
+    "ApiKey": "<your-api-key>",
+    "Mode": "model",
+    "Model": "gpt-realtime-mini",
+    "Voice": "en-US-Ava:DragonHDLatestNeural"
+  }
+}
 ```
+
+This file is gitignored.
 
 ### 2. Build and run
 
@@ -58,12 +68,13 @@ dotnet publish -o ../Server/wwwroot
 
 ```
 VoiceAgentWeb/
-├── VoiceAgentWeb.sln              # Solution file
+├── VoiceAgentWeb.slnx             # Solution file
 ├── Server/                        # ASP.NET Core backend
 │   ├── Program.cs                 # WebSocket server + REST endpoints
 │   ├── VoiceLiveHandler.cs        # Azure Voice Live SDK bridge
 │   ├── SessionConfig.cs           # Session configuration model
-│   ├── .env.sample                # Environment variable template
+│   ├── HrInterviewAgent.cs        # Agent persona and instructions
+│   ├── appsettings.json           # Base config (no secrets)
 │   └── VoiceAgentWeb.Server.csproj
 ├── Client/                        # Blazor WASM frontend
 │   ├── Pages/
@@ -108,7 +119,7 @@ VoiceAgentWeb/
 ## Authentication
 
 - **Recommended**: `DefaultAzureCredential` — run `az login` for local development
-- **Fallback**: Set `AZURE_VOICELIVE_API_KEY` in `.env`
+- **Fallback**: Set `ApiKey` in `Server/appsettings.Development.json`
 
 ## Customization
 
